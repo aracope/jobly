@@ -58,7 +58,8 @@ class Company {
                   logo_url AS "logoUrl"
            FROM companies
            ORDER BY name`);
-    return companiesRes.rows;
+    
+  
   }
 
   /** Given a company handle, return data about company.
