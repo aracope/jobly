@@ -39,20 +39,55 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
   }
 });
 
-/** GET /  =>
- *   { companies: [ { handle, name, description, numEmployees, logoUrl }, ...] }
+/**
+ * GET / =>
+ *   Returns a list of companies, optionally filtered by query parameters.
  *
- * Can filter on provided search filters:
- * - minEmployees
- * - maxEmployees
- * - nameLike (will find case-insensitive, partial matches)
+ * Query Parameters (all optional):
+ * - minEmployees (integer): Return companies with at least this many employees.
+ * - maxEmployees (integer): Return companies with at most this many employees.
+ * - nameLike (string): Case-insensitive, partial match on company name.
+ *
+ * If both minEmployees and maxEmployees are provided, minEmployees must be <= maxEmployees,
+ * otherwise a BadRequestError is thrown.
+ *
+ * Returns:
+ *   { companies: [ { handle, name, description, numEmployees, logoUrl }, ... ] }
  *
  * Authorization required: none
  */
 
 router.get("/", async function (req, res, next) {
   try {
-    const companies = await Company.findAll();
+    const q = req.query;
+
+    // Define allowed filter keys
+    const allowedFilters = ["minEmployees", "maxEmployees", "nameLike"];
+
+    // Check for any unexpected filters
+    for (let key of Object.keys(q)) {
+      if (!allowedFilters.includes(key)) {
+        throw new BadRequestError(`Invalid filter: ${key}`);
+      }
+    }
+
+    // Convert string values to numbers if needed
+    if (q.minEmployees !== undefined) q.minEmployees = +q.minEmployees;
+    if (q.maxEmployees !== undefined) q.maxEmployees = +q.maxEmployees;
+
+    // Rename nameLike to name for filtering
+    if (q.nameLike !== undefined) {
+      q.name = q.nameLike;
+      delete q.nameLike;
+    }
+
+    if (q.minEmployees !== undefined && q.maxEmployees !== undefined) {
+      if (q.minEmployees > q.maxEmployees) {
+        throw new BadRequestError("minEmployees cannot be greater than maxEmployees");
+      }
+    }
+
+    const companies = await Company.findAll(q);
     return res.json({ companies });
   } catch (err) {
     return next(err);
@@ -80,9 +115,9 @@ router.get("/:handle", async function (req, res, next) {
  *
  * Patches company data.
  *
- * fields can be: { name, description, numEmployees, logo_url }
+ * fields can be: { name, description, numEmployees, logoUrl }
  *
- * Returns { handle, name, description, numEmployees, logo_url }
+ * Returns { handle, name, description, numEmployees, logoUrl }
  *
  * Authorization required: login
  */
