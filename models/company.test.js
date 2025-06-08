@@ -8,6 +8,8 @@ const {
   commonBeforeEach,
   commonAfterEach,
   commonAfterAll,
+  userToken,
+  adminToken
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
