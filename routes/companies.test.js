@@ -30,11 +30,11 @@ describe("POST /companies", function () {
     numEmployees: 10,
   };
 
-  test("ok for users", async function () {
+  test("ok for admin users", async function () {
     const resp = await request(app)
       .post("/companies")
       .send(newCompany)
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(201);
     expect(resp.body).toEqual({
       company: newCompany,
@@ -48,7 +48,7 @@ describe("POST /companies", function () {
         handle: "new",
         numEmployees: 10,
       })
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(400);
   });
 
@@ -59,9 +59,19 @@ describe("POST /companies", function () {
         ...newCompany,
         logoUrl: "not-a-url",
       })
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(400);
   });
+
+  test("unauth for non-admin user to POST", async function () {
+    const resp = await request(app)
+      .post("/companies")
+      .send(newCompany)
+      // non-admin
+      .set("authorization", `Bearer ${userToken()}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
 });
 
 /************************************** GET /companies */
@@ -246,7 +256,7 @@ describe("GET /companies/:handle", function () {
 /************************************** PATCH /companies/:handle */
 
 describe("PATCH /companies/:handle", function () {
-  test("works for users", async function () {
+  test("works for admin users", async function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({
@@ -302,12 +312,20 @@ describe("PATCH /companies/:handle", function () {
       .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(400);
   });
+
+  test("unauth for non-admin user to PATCH", async function () {
+    const resp = await request(app)
+      .patch(`/companies/c1`)
+      .send({ name: "Not Allowed" })
+      .set("authorization", `Bearer ${userToken()}`); // non-admin token
+    expect(resp.statusCode).toEqual(401); // or 403 if you use Forbidden
+  });
 });
 
 /************************************** DELETE /companies/:handle */
 
 describe("DELETE /companies/:handle", function () {
-  test("works for users", async function () {
+  test("works for admin users", async function () {
     const resp = await request(app)
       .delete(`/companies/c1`)
       .set("authorization", `Bearer ${adminToken()}`);
@@ -325,5 +343,12 @@ describe("DELETE /companies/:handle", function () {
       .delete(`/companies/nope`)
       .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(404);
+  });
+
+  test("unauth for non-admin user to DELETE", async function () {
+    const resp = await request(app)
+      .delete(`/companies/c1`)
+      .set("authorization", `Bearer ${userToken()}`);
+    expect(resp.statusCode).toEqual(401);
   });
 });
