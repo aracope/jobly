@@ -317,8 +317,8 @@ describe("PATCH /companies/:handle", function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({ name: "Not Allowed" })
-      .set("authorization", `Bearer ${userToken()}`); // non-admin token
-    expect(resp.statusCode).toEqual(401); // or 403 if you use Forbidden
+      .set("authorization", `Bearer ${userToken()}`); 
+    expect(resp.statusCode).toEqual(401); 
   });
 });
 

@@ -9,11 +9,13 @@ const User = require("../models/user");
 const {
   commonBeforeAll,
   commonBeforeEach,
-  commonAfterEach,
+  commonAfterEach,  
   commonAfterAll,
   userToken,
   adminToken
 } = require("./_testCommon");
+
+const { ensureAdmin, ensureLoggedIn,  ensureCorrectUserOrAdmin } = require("../middleware/auth.js");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -29,7 +31,7 @@ describe("POST /users", function () {
       .send({
         username: "u-new",
         firstName: "First-new",
-        lastName: "Last-newL",
+        lastName: "Last-new",
         password: "password-new",
         email: "new@email.com",
         isAdmin: false,
@@ -40,7 +42,7 @@ describe("POST /users", function () {
       user: {
         username: "u-new",
         firstName: "First-new",
-        lastName: "Last-newL",
+        lastName: "Last-new",
         email: "new@email.com",
         isAdmin: false,
       }, token: expect.any(String),
@@ -53,7 +55,7 @@ describe("POST /users", function () {
       .send({
         username: "u-new",
         firstName: "First-new",
-        lastName: "Last-newL",
+        lastName: "Last-new",
         password: "password-new",
         email: "new@email.com",
         isAdmin: true,
@@ -64,7 +66,7 @@ describe("POST /users", function () {
       user: {
         username: "u-new",
         firstName: "First-new",
-        lastName: "Last-newL",
+        lastName: "Last-new",
         email: "new@email.com",
         isAdmin: true,
       }, token: expect.any(String),
@@ -77,7 +79,7 @@ describe("POST /users", function () {
       .send({
         username: "u-new",
         firstName: "First-new",
-        lastName: "Last-newL",
+        lastName: "Last-new",
         password: "password-new",
         email: "new@email.com",
         isAdmin: true,
@@ -91,7 +93,7 @@ describe("POST /users", function () {
       .send({
         username: "u-new",
       })
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(400);
   });
 
@@ -101,12 +103,12 @@ describe("POST /users", function () {
       .send({
         username: "u-new",
         firstName: "First-new",
-        lastName: "Last-newL",
+        lastName: "Last-new",
         password: "password-new",
         email: "not-an-email",
         isAdmin: true,
       })
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(400);
   });
 });
@@ -117,7 +119,7 @@ describe("GET /users", function () {
   test("works for users", async function () {
     const resp = await request(app)
       .get("/users")
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.body).toEqual({
       users: [
         {
@@ -165,7 +167,7 @@ describe("GET /users", function () {
     await db.query("DROP TABLE users CASCADE");
     const resp = await request(app)
       .get("/users")
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(500);
   });
 });
@@ -205,7 +207,7 @@ describe("GET /users/:username", function () {
 /************************************** PATCH /users/:username */
 
 describe("PATCH /users/:username", () => {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
       .patch(`/users/u1`)
       .send({
@@ -238,7 +240,7 @@ describe("PATCH /users/:username", () => {
       .send({
         firstName: "Nope",
       })
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(404);
   });
 
@@ -271,12 +273,21 @@ describe("PATCH /users/:username", () => {
     const isSuccessful = await User.authenticate("u1", "new-password");
     expect(isSuccessful).toBeTruthy();
   });
+
+  test("forbidden if non-admin tries to patch another user", async function () {
+  const resp = await request(app)
+    .patch(`/users/u2`)
+    .send({ firstName: "Hacker" })
+    .set("authorization", `Bearer ${userToken()}`);
+  expect(resp.statusCode).toEqual(401); 
+});
+
 });
 
 /************************************** DELETE /users/:username */
 
 describe("DELETE /users/:username", function () {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
       .delete(`/users/u1`)
       .set("authorization", `Bearer ${adminToken()}`);
@@ -292,7 +303,7 @@ describe("DELETE /users/:username", function () {
   test("not found if user missing", async function () {
     const resp = await request(app)
       .delete(`/users/nope`)
-      .set("authorization", `Bearer ${userToken()}`);
+      .set("authorization", `Bearer ${adminToken()}`);
     expect(resp.statusCode).toEqual(404);
   });
 });
