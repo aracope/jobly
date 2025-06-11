@@ -87,11 +87,13 @@ describe("findAll", function () {
       },
     ]);
   });
+
   test("works: name filter", async function () {
     // Matches all
     const result = await Company.findAll({ name: "c" });
     expect(result).toHaveLength(3);
   });
+
   test("works: minEmployees filter", async function () {
     const result = await Company.findAll({ minEmployees: 2 });
     expect(result).toEqual([
@@ -111,6 +113,7 @@ describe("findAll", function () {
       },
     ]);
   });
+
   test("works: maxEmployees filter", async function () {
     const result = await Company.findAll({ maxEmployees: 2 });
     expect(result).toEqual([
@@ -130,6 +133,7 @@ describe("findAll", function () {
       },
     ]);
   });
+
   test("works: all filters together", async function () {
     const result = await Company.findAll({ name: "c", minEmployees: 2, maxEmployees: 2 });
     expect(result).toEqual([
@@ -142,6 +146,7 @@ describe("findAll", function () {
       },
     ]);
   });
+  
   test("returns empty if no matching results", async function () {
     const result = await Company.findAll({ name: "nope", minEmployees: 100 });
     expect(result).toEqual([]);
