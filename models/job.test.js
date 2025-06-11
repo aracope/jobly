@@ -79,49 +79,49 @@ describe("findAll", function () {
     ]);
   });
 
-//   test("returns empty if no matching results", async function () {
-//     const result = await Job.findAll({ title: "none" });
-//     expect(result).toEqual([]);
-//   });
+  test("returns empty if no matching results", async function () {
+    const result = await Job.findAll({ title: "none" });
+    expect(result).toEqual([]);
+  });
 
-//   test("filters by title", async function () {
-//     const result = await Job.findAll({ title: "j1" });
-//     expect(result).toEqual([
-//       {
-//         id: expect.any(Number),
-//         title: "j1",
-//         salary: 100000,
-//         equity: "0.05",
-//         companyHandle: "c1",
-//       },
-//     ]);
-//   });
+  test("filters by title", async function () {
+    const result = await Job.findAll({ title: "j1" });
+    expect(result).toEqual([
+      {
+        id: expect.any(Number),
+        title: "j1",
+        salary: 100000,
+        equity: "0.05",
+        companyHandle: "c1",
+      },
+    ]);
+  });
 
-//   test("filters by minSalary", async function () {
-//     const result = await Job.findAll({ minSalary: 130000 });
-//     expect(result).toEqual([
-//       {
-//         id: expect.any(Number),
-//         title: "j3",
-//         salary: 150000,
-//         equity: null,
-//         companyHandle: "c3",
-//       },
-//     ]);
-//   });
+  test("filters by minSalary", async function () {
+    const result = await Job.findAll({ minSalary: 130000 });
+    expect(result).toEqual([
+      {
+        id: expect.any(Number),
+        title: "j3",
+        salary: 150000,
+        equity: null,
+        companyHandle: "c3",
+      },
+    ]);
+  });
 
-//   test("filters by hasEquity", async function () {
-//     const result = await Job.findAll({ hasEquity: true });
-//     expect(result).toEqual([
-//       {
-//         id: expect.any(Number),
-//         title: "j1",
-//         salary: 100000,
-//         equity: "0.05",
-//         companyHandle: "c1",
-//       },
-//     ]);
-//   });
+  test("filters by hasEquity", async function () {
+    const result = await Job.findAll({ hasEquity: true });
+    expect(result).toEqual([
+      {
+        id: expect.any(Number),
+        title: "j1",
+        salary: 100000,
+        equity: "0.05",
+        companyHandle: "c1",
+      },
+    ]);
+  });
 });
 
 /************************************** get */

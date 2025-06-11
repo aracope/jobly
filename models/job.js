@@ -24,17 +24,52 @@ class Job {
 
 
     /** Find all jobs. **/
-// Filtering logic will be implemented later
-    static async findAll(/**filters = {}**/) {
-        const result = await db.query(
+    // Filtering logic will be implemented later
+    static async findAll(filters = {}) {
+        let query =
             `SELECT id,
                 title,
                 salary,
                 equity,
                 company_handle AS "companyHandle"
-            FROM jobs
-            ORDER BY id`
-        );
+            FROM jobs`;
+
+        // Array to hold individual SQL WHERE clause conditions
+        let whereParts = [];
+
+        // Array to hold values for parameterized query placeholders ($1, $2, etc.)
+        let queryValues = [];
+
+        const { title, minSalary, hasEquity } = filters;
+
+        // If minSalary filter is set, add condition and value to arrays
+        if (minSalary !== undefined) {
+            queryValues.push(minSalary);
+
+            // Use parameter placeholder with proper index for safe queries
+            whereParts.push(`salary >= $${queryValues.length}`);
+        }
+
+        // If name filter is set, add a case-insensitive LIKE condition with wildcards
+        if (title) {
+            queryValues.push(`%${title.toLowerCase()}%`);
+            whereParts.push(`LOWER(title) LIKE $${queryValues.length}`);
+        }
+
+        if (hasEquity === true) {
+            whereParts.push(`equity::float > 0`);
+        }
+
+        // If any filters were applied, join them with AND and append to the query
+        if (whereParts.length > 0) {
+            query += " WHERE " + whereParts.join(" AND ");
+        }
+
+        // Orders the results alphabetically by job title
+        query += " ORDER BY title";
+
+        // Execute the constructed query with parameter values and return the rows
+        const result = await db.query(query, queryValues);
         return result.rows;
     }
 
@@ -104,6 +139,8 @@ class Job {
 
         if (!job) throw new NotFoundError(`No job: ${id}`);
     }
+
+
 }
 
 module.exports = Job;
