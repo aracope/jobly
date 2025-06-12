@@ -9,13 +9,14 @@ const User = require("../models/user");
 const {
   commonBeforeAll,
   commonBeforeEach,
-  commonAfterEach,  
+  commonAfterEach,
   commonAfterAll,
   userToken,
-  adminToken
+  adminToken,
+  jobId
 } = require("./_testCommon");
 
-const { ensureAdmin, ensureLoggedIn,  ensureCorrectUserOrAdmin } = require("../middleware/auth.js");
+const { ensureAdmin, ensureLoggedIn, ensureCorrectUserOrAdmin } = require("../middleware/auth.js");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -186,6 +187,7 @@ describe("GET /users/:username", function () {
         lastName: "U1L",
         email: "user1@user.com",
         isAdmin: false,
+        jobs: []
       },
     });
   });
@@ -275,12 +277,12 @@ describe("PATCH /users/:username", () => {
   });
 
   test("forbidden if non-admin tries to patch another user", async function () {
-  const resp = await request(app)
-    .patch(`/users/u2`)
-    .send({ firstName: "Hacker" })
-    .set("authorization", `Bearer ${userToken()}`);
-  expect(resp.statusCode).toEqual(401); 
-});
+    const resp = await request(app)
+      .patch(`/users/u2`)
+      .send({ firstName: "Hacker" })
+      .set("authorization", `Bearer ${userToken()}`);
+    expect(resp.statusCode).toEqual(401);
+  });
 
 });
 
@@ -312,17 +314,33 @@ describe("DELETE /users/:username", function () {
 
 describe("POST /users/:username/jobs/:id", function () {
   test("works for correct user", async function () {
+
+    // Create a job
+    const result = await db.query(`
+    INSERT INTO jobs (title, salary, equity, company_handle)
+    VALUES ('Test Job User', 50000, '0', 'c1')
+    RETURNING id`);
+
+    // Apply as correct user
     const resp = await request(app)
-      .post(`/users/u1/jobs/1`)
+      .post(`/users/u1/jobs/${jobId()}`)
       .set("authorization", `Bearer ${userToken()}`);
-    expect(resp.body).toEqual({ applied: 1 });
+
+    expect(resp.body).toEqual({ applied: jobId() });
   });
 
   test("works for admin", async function () {
+    // Create another job
+    const result = await db.query(`
+    INSERT INTO jobs (title, salary, equity, company_handle)
+    VALUES ('Test Job Admin', 60000, '0', 'c1')
+    RETURNING id`);
+    const newJobId = result.rows[0].id;
+
     const resp = await request(app)
-      .post(`/users/u2/jobs/2`)
+      .post(`/users/u2/jobs/${newJobId}`)
       .set("authorization", `Bearer ${adminToken()}`);
-    expect(resp.body).toEqual({ applied: 2 });
+    expect(resp.body).toEqual({ applied: newJobId });
   });
 
   test("unauth for anon", async function () {
