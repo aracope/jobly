@@ -230,6 +230,14 @@ describe("GET /companies/:handle", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: [
+          {
+            id: expect.any(Number),
+            title: "j1",
+            salary: 100000,
+            equity: "0.05",
+          },
+        ],
       },
     });
   });
@@ -243,6 +251,7 @@ describe("GET /companies/:handle", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
+        jobs: [],
       },
     });
   });
@@ -317,8 +326,8 @@ describe("PATCH /companies/:handle", function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({ name: "Not Allowed" })
-      .set("authorization", `Bearer ${userToken()}`); 
-    expect(resp.statusCode).toEqual(401); 
+      .set("authorization", `Bearer ${userToken()}`);
+    expect(resp.statusCode).toEqual(401);
   });
 });
 
