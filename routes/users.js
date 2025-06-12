@@ -6,7 +6,7 @@ const jsonschema = require("jsonschema");
 
 const express = require("express");
 
-const { ensureAdmin, ensureLoggedIn,  ensureCorrectUserOrAdmin } = require("../middleware/auth.js");
+const { ensureAdmin, ensureLoggedIn, ensureCorrectUserOrAdmin } = require("../middleware/auth.js");
 
 const { BadRequestError } = require("../expressError");
 const User = require("../models/user");
@@ -40,6 +40,17 @@ router.post("/", ensureAdmin, async function (req, res, next) {
     const user = await User.register(req.body);
     const token = createToken(user);
     return res.status(201).json({ user, token });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+router.post('/:username/jobs/:id', ensureCorrectUserOrAdmin, async function (req, res, next) {
+  try {
+    const jobId = parseInt(req.params.id);
+    const username = req.params.username;
+    await User.applyToJob(username, jobId);
+    return res.json({ applied: jobId });
   } catch (err) {
     return next(err);
   }
