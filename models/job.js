@@ -9,6 +9,9 @@ const { BadRequestError, NotFoundError } = require("../expressError");
 
 class Job {
     /** Create a job (from data), update db, return new job data.
+     * 
+     * Data should be { title, salary, equity, companyHandle }
+     * Returns { id, title, salary, equity, companyHandle }
     * */
 
     static async create({ title, salary, equity, companyHandle }) {
@@ -18,13 +21,19 @@ class Job {
             RETURNING id, title, salary, equity, company_handle as "companyHandle"`,
             [title, salary, equity, companyHandle],
         );
-        console.log("Job.create result:", result.rows[0]);
         return result.rows[0];
     }
 
 
-    /** Find all jobs. **/
-    // Filtering logic will be implemented later
+    /** Find all jobs: optionally filtered by title, minSalary, or hasEquity.
+   *
+   * Filters (all optional):
+   * - title (case-insensitive, partial match)
+   * - minSalary (returns jobs with salary >= this value)
+   * - hasEquity (true returns jobs with equity > 0)
+   *
+   * Returns [{ id, title, salary, equity, companyHandle }, ...] **/
+
     static async findAll(filters = {}) {
         let query =
             `SELECT id,
@@ -73,18 +82,17 @@ class Job {
         return result.rows;
     }
 
-    /** Get job by ID **/
+    /** Get job by ID
+     * Returns { id, title, salary, equity, companyHandle }
+     * Throws NotFoundError if job not found. **/
 
     static async get(id) {
+        if (isNaN(id)) throw new BadRequestError(`Invalid job ID: ${id}`);
+
         const result = await db.query(
-            `SELECT id,
-                title,
-                salary,
-                equity,
-                company_handle AS "companyHandle"
-            FROM jobs
-            WHERE id = $1`,
-            [id]);
+            `SELECT id, title, salary, equity, company_handle AS "companyHandle"
+     FROM jobs
+     WHERE id = $1`, [id]);
 
         const job = result.rows[0];
 
@@ -93,7 +101,11 @@ class Job {
         return job;
     }
 
-    /** Update job data with `data`.**/
+    /** Update job data with `data`.
+     * Data can include: { title, salary, equity }
+     *
+     * Returns { id, title, salary, equity, companyHandle }
+     * Throws NotFoundError if job not found. **/
 
     static async update(id, data) {
         const { setCols, values } = sqlForPartialUpdate(
@@ -106,14 +118,16 @@ class Job {
 
         const idVarIdx = "$" + (values.length + 1);
 
-        const querySql = `UPDATE jobs 
-                      SET ${setCols} 
-                      WHERE id = ${idVarIdx} 
-                      RETURNING id,
-                                title, 
-                                salary, 
-                                equity,
-                                company_handle AS "companyHandle"`;
+        const querySql =
+            `UPDATE jobs
+         SET ${setCols}
+         WHERE id = ${idVarIdx}
+         RETURNING id,
+                 title,
+                 salary,
+                 equity,
+                 company_handle AS "companyHandle"`;
+
         const result = await db.query(querySql, [...values, id]);
         const job = result.rows[0];
 
@@ -123,17 +137,19 @@ class Job {
     }
 
     /** Delete given job from database; returns undefined.
-     *
+     * Returns undefined.
      * Throws NotFoundError if job not found.
      **/
 
     static async remove(id) {
+        if (isNaN(id)) throw new BadRequestError(`Invalid job ID: ${id}`);
+
         const result = await db.query(
             `DELETE
            FROM jobs
            WHERE id = $1
            RETURNING id`,
-            [id],
+            [id]
         );
         const job = result.rows[0];
 

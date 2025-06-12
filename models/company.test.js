@@ -146,7 +146,7 @@ describe("findAll", function () {
       },
     ]);
   });
-  
+
   test("returns empty if no matching results", async function () {
     const result = await Company.findAll({ name: "nope", minEmployees: 100 });
     expect(result).toEqual([]);

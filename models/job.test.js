@@ -4,10 +4,10 @@ const db = require("../db.js");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const Job = require("./job.js");
 const {
-    commonBeforeAll,
-    commonBeforeEach,
-    commonAfterEach,
-    commonAfterAll,
+  commonBeforeAll,
+  commonBeforeEach,
+  commonAfterEach,
+  commonAfterAll,
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -25,10 +25,10 @@ describe("create", function () {
     companyHandle: "c1",
   };
 
-  test("works", async function () {
+  test("successfully creates a new job", async function () {
     const job = await Job.create(newJob);
-    console.log("Created job:", job);
 
+    // Check the return value
     expect(job).toMatchObject({
       title: "Software Engineer",
       salary: 80000,
@@ -36,6 +36,7 @@ describe("create", function () {
       companyHandle: "c1",
     });
 
+    // Confirm it exists in the database
     const result = await db.query(
       `SELECT title, salary, equity, company_handle
        FROM jobs
@@ -79,7 +80,7 @@ describe("findAll", function () {
     ]);
   });
 
-  test("returns empty if no matching results", async function () {
+  test("returns empty array when no matches found", async function () {
     const result = await Job.findAll({ title: "none" });
     expect(result).toEqual([]);
   });
@@ -110,7 +111,7 @@ describe("findAll", function () {
     ]);
   });
 
-  test("filters by hasEquity", async function () {
+  test("filters by jobs that offer equity", async function () {
     const result = await Job.findAll({ hasEquity: true });
     expect(result).toEqual([
       {
@@ -144,6 +145,8 @@ describe("get", function () {
   test("not found if no such job", async function () {
     try {
       await Job.get(999999);
+
+      // Fail if no error is thrown
       fail();
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
@@ -177,6 +180,7 @@ describe("update", function () {
       companyHandle: "c1",
     });
 
+    // Confirm DB reflects update
     const result = await db.query(
       `SELECT title, salary, equity, company_handle
        FROM jobs
@@ -189,7 +193,7 @@ describe("update", function () {
     });
   });
 
-  test("not found if no such job", async function () {
+  test("throws NotFoundError for nonexistent job", async function () {
     try {
       await Job.update(999999, { title: "Nope" });
       fail();
@@ -198,7 +202,7 @@ describe("update", function () {
     }
   });
 
-  test("bad request with no data", async function () {
+  test("throws BadRequestError when no update data is provided", async function () {
     const job = await Job.create({
       title: "NothingToUpdate",
       salary: 75000,
@@ -232,7 +236,7 @@ describe("remove", function () {
     expect(res.rows.length).toEqual(0);
   });
 
-  test("not found if no such job", async function () {
+  test("throws NotFoundError for nonexistent job", async function () {
     try {
       await Job.remove(999999);
       fail();
