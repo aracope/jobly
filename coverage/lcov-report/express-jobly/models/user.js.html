@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">77.58% </span>
+                <span class="strong">96.55% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>45/58</span>
+                <span class='fraction'>56/58</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70% </span>
+                <span class="strong">95% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>14/20</span>
+                <span class='fraction'>19/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/8</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80.76% </span>
+                <span class="strong">98.07% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>42/52</span>
+                <span class='fraction'>51/52</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -507,28 +507,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -748,30 +748,30 @@ class User {
     return user;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  st</span>atic async applyToJob(username, jobId) {
+  static async applyToJob(username, jobId) {
     // Check user exists
-    const userCheck = <span class="cstat-no" title="statement not covered" >await db.query(</span>
+    const userCheck = await db.query(
       `SELECT username FROM users WHERE username = $1`, [username]);
-<span class="cstat-no" title="statement not covered" >    if (!userCheck.rows.length) <span class="cstat-no" title="statement not covered" >throw new NotFoundError(`No user: ${username}`);</span></span>
+    if (!userCheck.rows.length) throw new NotFoundError(`No user: ${username}`);
 &nbsp;
     // Check job exists
-    const jobCheck = <span class="cstat-no" title="statement not covered" >await db.query(</span>
+    const jobCheck = await db.query(
       `SELECT id FROM jobs WHERE id = $1`, [jobId]);
-<span class="cstat-no" title="statement not covered" >    if (!jobCheck.rows.length) <span class="cstat-no" title="statement not covered" >throw new NotFoundError(`No job: ${jobId}`);</span></span>
+    if (!jobCheck.rows.length) throw new NotFoundError(`No job: ${jobId}`);
 &nbsp;
     // Insert application record
-<span class="cstat-no" title="statement not covered" >    try {</span>
-<span class="cstat-no" title="statement not covered" >      await db.query(</span>
+    try {
+      await db.query(
         `INSERT INTO applications (username, job_id) VALUES ($1, $2)`,
         [username, jobId]
       );
     } catch (err) {
-<span class="cstat-no" title="statement not covered" >      if (err.code === '23505') {</span>
-<span class="cstat-no" title="statement not covered" >        throw new BadRequestError("Application already exists!");</span>
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (err.code === '23505') {
+        throw new BadRequestError("Application already exists!");
       }
 <span class="cstat-no" title="statement not covered" >      throw err;</span>
     }
-<span class="cstat-no" title="statement not covered" >    return jobId;</span>
+    return jobId;
   }
 &nbsp;
   /** Delete given user from database; returns undefined. */
@@ -799,7 +799,7 @@ module.exports = User;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-06-12T06:32:24.889Z
+                at 2025-06-12T07:14:20.418Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

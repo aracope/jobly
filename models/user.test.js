@@ -7,6 +7,8 @@ const {
 } = require("../expressError");
 const db = require("../db.js");
 const User = require("./user.js");
+const Job = require("./job");
+
 const {
   commonBeforeAll,
   commonBeforeEach,
@@ -61,6 +63,7 @@ describe("register", function () {
     lastName: "Tester",
     email: "test@test.com",
     isAdmin: false,
+
   };
 
   test("works", async function () {
@@ -140,6 +143,33 @@ describe("get", function () {
       lastName: "U1L",
       email: "u1@email.com",
       isAdmin: false,
+      jobs: [],
+
+    });
+  });
+
+  test("works: user with job applications", async function () {
+    // Create a new job first
+    const job = await Job.create({
+      title: "Test Job",
+      salary: 100000,
+      equity: "0.05",
+      companyHandle: "c1",
+    });
+
+    // Apply u1 to this job
+    await User.applyToJob("u1", job.id);
+
+    // Get user info
+    let user = await User.get("u1");
+
+    expect(user).toEqual({
+      username: "u1",
+      firstName: "U1F",
+      lastName: "U1L",
+      email: "u1@email.com",
+      isAdmin: false,
+      jobs: [job.id],  // <-- job id included here
     });
   });
 
@@ -164,8 +194,9 @@ describe("update", function () {
   };
 
   test("works", async function () {
-    let job = await User.update("u1", updateData);
-    expect(job).toEqual({
+    let updatedUser = await User.update("u1", updateData);
+
+    expect(updatedUser).toEqual({
       username: "u1",
       ...updateData,
     });
@@ -209,13 +240,65 @@ describe("update", function () {
   });
 });
 
+describe("applyToJob", function () {
+  test("successfully applies to job", async function () {
+    const jobId = await Job.create({
+      title: "new job",
+      salary: 50000,
+      equity: "0.01",
+      companyHandle: "c1"
+    }).then(j => j.id);
+
+    const res = await User.applyToJob("u1", jobId);
+    expect(res).toEqual(jobId);
+
+    const result = await db.query(
+      `SELECT * FROM applications WHERE username='u1' AND job_id=$1`, [jobId]);
+    expect(result.rows.length).toEqual(1);
+  });
+
+  test("throws NotFoundError if user doesn't exist", async function () {
+    const jobId = await Job.create({
+      title: "ghost job",
+      salary: 60000,
+      equity: "0",
+      companyHandle: "c1"
+    }).then(j => j.id);
+
+    await expect(User.applyToJob("nope", jobId))
+      .rejects
+      .toThrow(NotFoundError);
+  });
+
+  test("throws NotFoundError if job doesn't exist", async function () {
+    await expect(User.applyToJob("u1", 99999))
+      .rejects
+      .toThrow(NotFoundError);
+  });
+
+  test("throws BadRequestError on duplicate application", async function () {
+    const jobId = await Job.create({
+      title: "repeat job",
+      salary: 70000,
+      equity: "0.02",
+      companyHandle: "c1"
+    }).then(j => j.id);
+
+    await User.applyToJob("u1", jobId);
+
+    await expect(User.applyToJob("u1", jobId))
+      .rejects
+      .toThrow(BadRequestError);
+  });
+});
+
 /************************************** remove */
 
 describe("remove", function () {
   test("works", async function () {
     await User.remove("u1");
     const res = await db.query(
-        "SELECT * FROM users WHERE username='u1'");
+      "SELECT * FROM users WHERE username='u1'");
     expect(res.rows.length).toEqual(0);
   });
 
